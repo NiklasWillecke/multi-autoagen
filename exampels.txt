@@ -1,0 +1,144 @@
+# Example inputs for the Group Movie Recommendation System
+# ---------------------------------------------------------------------------
+# Web UI: Paste the text under "Film preferences" for each person.
+# API: JSON body for POST /api/recommend (see scenarios below).
+# ---------------------------------------------------------------------------
+
+
+## Scenario 1: Two friends – similar taste (easy consensus)
+# Alice:
+I like exciting movies with interesting characters, emotional moments, and a gripping plot. I especially enjoy thrillers, science fiction, and dramas with surprising twists. At least 7.0 on TMDB.
+
+# Bob:
+Entertaining movies with humor, adventure, and atmosphere — especially action, fantasy, and comedy. A good story matters more than special effects. No horror please.
+
+
+## Scenario 2: Couple – different preferences (conflict)
+# Lisa:
+Romantic comedies or light dramas, preferably with lots of wit and charming characters. Feel-good movies for a relaxed evening. No violence, no horror.
+
+# Tom:
+Dark thrillers and crime films with twists, psychological tension, and a moody atmosphere. Movies like Inception or Se7en. Action is fine, but no cheesy romance.
+
+
+## Scenario 3: Family night – parents + teenager
+# Mom:
+Family-friendly movies that still entertain adults. Warm, funny, not too long. Animation or adventure works great. No explicit horror.
+
+# Dad:
+Exciting action or science fiction with a strong story and compelling characters. Something nerdy or futuristic is a plus. At least 6.5 rating.
+
+# Teen (Mia):
+Cool coming-of-age films or fantasy with strong protagonists. Visually impressive, not too childish. Comedy or drama — definitely not boring family movies.
+
+
+## Scenario 4: Film club – four people, mixed genres
+# Anna:
+European arthouse films, slow storytelling, great acting, philosophical themes. Prefers drama and mystery.
+
+# Ben:
+Blockbuster action with special effects, superheroes, fast pace. Popcorn cinema, nothing too serious.
+
+# Clara:
+Documentaries or inspiring biopics about real people. Emotional and thought-provoking.
+
+# David:
+Horror and mystery with supernatural elements, dark mood, unexpected twists. No romance.
+
+
+## Scenario 5: Friend group – finding a compromise (5 people)
+# Alex:
+Sci-fi with philosophical questions, time travel, or dystopian worlds. Blade Runner vibes.
+
+# Jordan:
+Classic comedies from the 90s or 2000s, lots of slapstick and witty dialogue.
+
+# Sam:
+War films or historical dramas, authentic and intense. No fantasy.
+
+# Riley:
+Anime-inspired animation or fantasy adventures, colorful worlds, hero's journey.
+
+# Casey:
+True-crime thrillers and investigative crime films, realistic and suspenseful until the end.
+
+
+## Scenario 6: Horror night vs. scaredy-cats (3 people)
+# Chris:
+Hardcore horror, jump scares, supernatural monsters — as scary as possible. The Conjuring style.
+
+# Pat:
+Light mystery thrillers without gore, more psychological tension. No splatter.
+
+# Morgan:
+No horror at all! Only comedy or feel-good animation. Horror is an absolute no-go.
+
+
+# ---------------------------------------------------------------------------
+# API examples (curl)
+# ---------------------------------------------------------------------------
+
+# Scenario 1 – minimal (2 users, default settings):
+curl -X POST http://localhost:3333/api/recommend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "users": [
+      {
+        "user_id": "u1",
+        "user_name": "Alice",
+        "raw_text": "I like exciting movies with interesting characters, emotional moments, and a gripping plot. I especially enjoy thrillers, science fiction, and dramas with surprising twists."
+      },
+      {
+        "user_id": "u2",
+        "user_name": "Bob",
+        "raw_text": "Entertaining movies with humor, adventure, and atmosphere — especially action, fantasy, and comedy. No horror please."
+      }
+    ]
+  }'
+
+# Scenario 2 – with agent discussion (3 voting rounds, 2 chat turns):
+curl -X POST http://localhost:3333/api/recommend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "users": [
+      {
+        "user_id": "u1",
+        "user_name": "Lisa",
+        "raw_text": "Romantic comedies or light dramas, feel-good vibes, no horror."
+      },
+      {
+        "user_id": "u2",
+        "user_name": "Tom",
+        "raw_text": "Dark thrillers and crime films with twists, psychological tension. No cheesy romance."
+      }
+    ],
+    "max_rounds": 3,
+    "enable_discussion": true,
+    "discussion_turns": 2
+  }'
+
+# Scenario 3 – family (3 users):
+curl -X POST http://localhost:3333/api/recommend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "users": [
+      {
+        "user_id": "u1",
+        "user_name": "Mom",
+        "raw_text": "Family-friendly movies, warm and funny. Animation or adventure. No horror."
+      },
+      {
+        "user_id": "u2",
+        "user_name": "Dad",
+        "raw_text": "Exciting action or science fiction with a strong story. At least 6.5 rating."
+      },
+      {
+        "user_id": "u3",
+        "user_name": "Mia",
+        "raw_text": "Coming-of-age or fantasy, visually cool, not too childish. No boring family movies."
+      }
+    ],
+    "max_rounds": 4,
+    "enable_discussion": true,
+    "discussion_turns": 3
+  }'

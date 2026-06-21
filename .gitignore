@@ -1,0 +1,5 @@
+.venv
+.env
+chroma-data/
+test.py
+test[1-9]*.py

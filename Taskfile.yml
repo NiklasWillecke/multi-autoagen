@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+tasks:
+  start:
+    - docker build -t autogen-demo .
+    - docker run --rm --env-file .env -p 3333:3333 autogen-demo
+
+  venv:
+    - python3.13 -m venv .venv
+    - source .venv/bin/activate
+    - python3 -m pip install --upgrade pip
+    - python3 -m pip install autogen-agentchat "autogen-ext[openai]"
+    - python3 -m pip install chromadb
+
+  chroma:
+    - docker run -d --name chroma -v ./chroma-data:/data -p 8000:8000 chromadb/chroma

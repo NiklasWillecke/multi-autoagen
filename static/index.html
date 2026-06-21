@@ -1,0 +1,1914 @@
+<!doctype html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>🎬 Group Movie Recommendation</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Segoe UI", system-ui, sans-serif;
+                background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+                min-height: 100vh;
+                color: #fff;
+                padding: 2rem 1rem;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 2.5rem;
+            }
+
+            header h1 {
+                font-size: 2.2rem;
+                font-weight: 800;
+                background: linear-gradient(90deg, #f7971e, #ffd200);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 0.5rem;
+            }
+
+            header p {
+                color: #aaa;
+                font-size: 1rem;
+            }
+
+            .card {
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 16px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                backdrop-filter: blur(10px);
+            }
+
+            .card h2 {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                color: #ffd200;
+            }
+
+            .user-count-control {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .settings-row {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .settings-row + .settings-row {
+                margin-top: 1.25rem;
+                padding-top: 1.25rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .settings-hint {
+                font-size: 0.8rem;
+                color: #888;
+                margin-top: 0.35rem;
+            }
+
+            .toggle-row {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                cursor: pointer;
+                font-size: 0.95rem;
+                color: #ccc;
+            }
+
+            .toggle-row input {
+                width: 18px;
+                height: 18px;
+                accent-color: #ffd200;
+                cursor: pointer;
+            }
+
+            .discussion-turns-row {
+                display: none;
+            }
+
+            .discussion-turns-row.visible {
+                display: flex;
+            }
+
+            .chat-bubble {
+                background: rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                padding: 0.65rem 0.85rem;
+                margin-top: 0.35rem;
+                line-height: 1.5;
+            }
+
+            .vote-bubble {
+                border-left: 3px solid #4caf50;
+                padding-left: 0.75rem;
+                margin-top: 0.35rem;
+                line-height: 1.5;
+            }
+
+            .timeline-card {
+                margin-top: 1.5rem;
+            }
+
+            .timeline-round {
+                position: relative;
+                padding-left: 1.5rem;
+                margin-bottom: 1.75rem;
+            }
+
+            .timeline-round::before {
+                content: "";
+                position: absolute;
+                left: 0.45rem;
+                top: 2rem;
+                bottom: -1rem;
+                width: 2px;
+                background: rgba(255, 210, 0, 0.2);
+            }
+
+            .timeline-round:last-child::before {
+                display: none;
+            }
+
+            .timeline-round-header {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                margin-bottom: 1rem;
+            }
+
+            .timeline-round-number {
+                width: 1.5rem;
+                height: 1.5rem;
+                border-radius: 50%;
+                background: #ffd200;
+                color: #111;
+                font-size: 0.75rem;
+                font-weight: 800;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                left: 0;
+                top: 0.15rem;
+            }
+
+            .timeline-round-title {
+                font-size: 1rem;
+                font-weight: 700;
+                color: #fff;
+            }
+
+            .timeline-badge {
+                font-size: 0.72rem;
+                padding: 0.2rem 0.55rem;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.08);
+                color: #bbb;
+            }
+
+            .timeline-badge.leader {
+                background: rgba(255, 210, 0, 0.15);
+                color: #ffd200;
+            }
+
+            .timeline-badge.final {
+                background: rgba(76, 175, 80, 0.15);
+                color: #4caf50;
+            }
+
+            .timeline-badge.warning {
+                background: rgba(244, 67, 54, 0.12);
+                color: #f44336;
+            }
+
+            .timeline-section-label {
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #888;
+                margin: 0.75rem 0 0.5rem;
+            }
+
+            .timeline-leader-result {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-top: 0.75rem;
+            }
+
+            .timeline-chat {
+                display: flex;
+                flex-direction: column;
+                gap: 0.65rem;
+            }
+
+            .chat-message {
+                display: flex;
+                gap: 0.65rem;
+                align-items: flex-start;
+            }
+
+            .chat-avatar {
+                width: 2rem;
+                height: 2rem;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            .chat-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .chat-meta {
+                font-size: 0.75rem;
+                color: #888;
+                margin-bottom: 0.2rem;
+            }
+
+            .chat-meta strong {
+                color: #fff;
+            }
+
+            .timeline-votes {
+                display: grid;
+                gap: 0.75rem;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+
+            .vote-card {
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 10px;
+                padding: 0.75rem;
+            }
+
+            .vote-card-header {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .vote-top-pick {
+                font-size: 0.82rem;
+                color: #ccc;
+                margin-bottom: 0.45rem;
+            }
+
+            .vote-top-pick strong {
+                color: #ffd200;
+            }
+
+            .vote-score-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.35rem;
+                margin-bottom: 0.45rem;
+            }
+
+            .vote-score-chip {
+                font-size: 0.68rem;
+                padding: 0.15rem 0.45rem;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.06);
+                color: #aaa;
+            }
+
+            .vote-reasoning {
+                font-size: 0.78rem;
+                color: #999;
+                line-height: 1.45;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+                padding-top: 0.45rem;
+            }
+
+            .timeline-standings {
+                overflow-x: auto;
+            }
+
+            .standings-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.78rem;
+            }
+
+            .standings-table th,
+            .standings-table td {
+                padding: 0.45rem 0.55rem;
+                text-align: left;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            }
+
+            .standings-table th {
+                color: #888;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                font-size: 0.68rem;
+            }
+
+            .standings-table tr.eligible {
+                background: rgba(255, 210, 0, 0.04);
+            }
+
+            .standings-table tr.ineligible {
+                opacity: 0.55;
+            }
+
+            .rank-change {
+                font-size: 0.68rem;
+                margin-left: 0.35rem;
+            }
+
+            .rank-change.up {
+                color: #4caf50;
+            }
+
+            .rank-change.down {
+                color: #f44336;
+            }
+
+            .rank-change.same {
+                color: #888;
+            }
+
+            .transcript-label {
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #888;
+                margin-left: 0.5rem;
+            }
+
+            .user-count-control label {
+                font-size: 1rem;
+                color: #ccc;
+            }
+
+            .count-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                border: 2px solid #ffd200;
+                background: transparent;
+                color: #ffd200;
+                font-size: 1.2rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .count-btn:hover {
+                background: #ffd200;
+                color: #000;
+            }
+
+            .count-display {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #fff;
+                min-width: 2rem;
+                text-align: center;
+            }
+
+            #users-container {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            }
+
+            .user-card {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 12px;
+                padding: 1rem;
+                transition: border-color 0.2s;
+            }
+
+            .user-card:hover {
+                border-color: rgba(255, 210, 0, 0.4);
+            }
+
+            .user-card-header {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1rem;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            .user-name-input {
+                flex: 1;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                color: #fff;
+                font-size: 0.95rem;
+                font-weight: 600;
+                padding: 2px 4px;
+                outline: none;
+            }
+
+            .user-name-input:focus {
+                border-bottom-color: #ffd200;
+            }
+
+            .user-pref-textarea {
+                width: 100%;
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 8px;
+                color: #fff;
+                font-size: 0.85rem;
+                padding: 0.6rem;
+                resize: vertical;
+                min-height: 80px;
+                outline: none;
+                font-family: inherit;
+                transition: border-color 0.2s;
+                line-height: 1.4;
+            }
+
+            .user-pref-textarea::placeholder {
+                color: #666;
+            }
+
+            .user-pref-textarea:focus {
+                border-color: rgba(255, 210, 0, 0.5);
+            }
+
+            .submit-btn {
+                width: 100%;
+                padding: 1rem;
+                background: linear-gradient(90deg, #f7971e, #ffd200);
+                border: none;
+                border-radius: 12px;
+                color: #000;
+                font-size: 1.1rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+            }
+
+            .submit-btn:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(255, 210, 0, 0.3);
+            }
+
+            .submit-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            /* Loading */
+            .loading {
+                display: none;
+                text-align: center;
+                padding: 2rem;
+            }
+
+            .loading.active {
+                display: block;
+            }
+
+            .spinner {
+                width: 48px;
+                height: 48px;
+                border: 4px solid rgba(255, 210, 0, 0.2);
+                border-top-color: #ffd200;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 1rem;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .loading-steps {
+                color: #aaa;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+
+            .loading-step {
+                padding: 0.25rem 0;
+                transition: color 0.3s;
+            }
+
+            .loading-step.active {
+                color: #ffd200;
+                font-weight: 600;
+            }
+
+            .loading-step.done {
+                color: #4caf50;
+            }
+
+            /* Results */
+            #result-section {
+                display: none;
+            }
+
+            #result-section.active {
+                display: block;
+            }
+
+            .winner-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(247, 151, 30, 0.15),
+                    rgba(255, 210, 0, 0.1)
+                );
+                border: 2px solid rgba(255, 210, 0, 0.4);
+                border-radius: 16px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .winner-layout {
+                display: flex;
+                gap: 1.25rem;
+                align-items: flex-start;
+            }
+
+            .winner-poster {
+                width: 120px;
+                flex-shrink: 0;
+                border-radius: 10px;
+                overflow: hidden;
+                background: rgba(0, 0, 0, 0.3);
+                aspect-ratio: 2 / 3;
+            }
+
+            .winner-poster img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .winner-poster.placeholder {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #666;
+                font-size: 2rem;
+            }
+
+            .winner-main {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .winner-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .winner-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                background: linear-gradient(90deg, #f7971e, #ffd200);
+                color: #000;
+                font-weight: 700;
+                font-size: 0.8rem;
+                padding: 0.3rem 0.8rem;
+                border-radius: 20px;
+                margin-bottom: 1rem;
+            }
+
+            .winner-title {
+                font-size: 1.8rem;
+                font-weight: 800;
+                margin-bottom: 0.3rem;
+            }
+
+            .winner-meta {
+                color: #aaa;
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .winner-meta span {
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+            }
+
+            .group-score {
+                font-size: 3rem;
+                font-weight: 900;
+                color: #ffd200;
+                line-height: 1;
+            }
+
+            .group-score-label {
+                font-size: 0.8rem;
+                color: #aaa;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .usage-box {
+                margin-top: 1rem;
+                padding: 0.75rem 1rem;
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                display: flex;
+                gap: 1.25rem;
+                flex-wrap: wrap;
+                font-size: 0.82rem;
+                color: #bbb;
+            }
+
+            .usage-box strong {
+                color: #ffd200;
+                font-weight: 700;
+            }
+
+            .usage-item {
+                display: flex;
+                flex-direction: column;
+                gap: 0.15rem;
+            }
+
+            .usage-item span:last-child {
+                color: #888;
+                font-size: 0.72rem;
+            }
+
+            .score-row {
+                display: flex;
+                gap: 1rem;
+                margin-top: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .user-score-chip {
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 8px;
+                padding: 0.5rem 0.8rem;
+                text-align: center;
+                min-width: 80px;
+            }
+
+            .user-score-chip .name {
+                font-size: 0.75rem;
+                color: #aaa;
+                margin-bottom: 0.2rem;
+            }
+
+            .user-score-chip .score {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #fff;
+            }
+
+            .reasoning-box {
+                background: rgba(0, 0, 0, 0.2);
+                border-left: 3px solid #ffd200;
+                border-radius: 0 8px 8px 0;
+                padding: 0.8rem 1rem;
+                margin-top: 1rem;
+                font-size: 0.9rem;
+                color: #ccc;
+                line-height: 1.6;
+            }
+
+            .description-box {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 8px;
+                padding: 0.8rem;
+                margin-top: 0.8rem;
+                font-size: 0.85rem;
+                color: #bbb;
+                line-height: 1.5;
+            }
+
+            /* Candidates */
+            .candidates-grid {
+                display: grid;
+                gap: 1rem;
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+
+            .candidate-card {
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 0;
+                cursor: pointer;
+                transition: all 0.2s;
+                overflow: hidden;
+            }
+
+            .candidate-poster {
+                width: 100%;
+                aspect-ratio: 2 / 3;
+                background: rgba(0, 0, 0, 0.35);
+                overflow: hidden;
+            }
+
+            .candidate-poster img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .candidate-poster.placeholder {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #555;
+                font-size: 2.5rem;
+            }
+
+            .candidate-body {
+                padding: 0.85rem 1rem 1rem;
+            }
+
+            .modal-poster {
+                width: 140px;
+                border-radius: 10px;
+                overflow: hidden;
+                flex-shrink: 0;
+                background: rgba(0, 0, 0, 0.3);
+                aspect-ratio: 2 / 3;
+            }
+
+            .modal-poster img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            .candidate-card:hover {
+                background: rgba(255, 255, 255, 0.08);
+                border-color: rgba(255, 210, 0, 0.3);
+                transform: translateY(-2px);
+            }
+
+            .candidate-card.winner {
+                border-color: rgba(255, 210, 0, 0.5);
+                background: rgba(255, 210, 0, 0.06);
+            }
+
+            .candidate-title {
+                font-weight: 700;
+                margin-bottom: 0.3rem;
+                font-size: 0.95rem;
+            }
+
+            .candidate-genres {
+                display: flex;
+                gap: 0.3rem;
+                flex-wrap: wrap;
+                margin-bottom: 0.6rem;
+            }
+
+            .genre-tag {
+                font-size: 0.7rem;
+                padding: 0.15rem 0.5rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 20px;
+                color: #bbb;
+            }
+
+            .candidate-avg-score {
+                font-size: 1.4rem;
+                font-weight: 800;
+                color: #ffd200;
+            }
+
+            .candidate-user-scores {
+                display: flex;
+                gap: 0.5rem;
+                margin-top: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .mini-score {
+                font-size: 0.75rem;
+                color: #aaa;
+            }
+
+            .mini-score span {
+                color: #fff;
+                font-weight: 600;
+            }
+
+            /* Modal */
+            .modal-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 100;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+            }
+
+            .modal-overlay.active {
+                display: flex;
+            }
+
+            .modal {
+                background: #1a1a2e;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                border-radius: 16px;
+                padding: 1.5rem;
+                max-width: 500px;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+            }
+
+            .modal-title {
+                font-size: 1.3rem;
+                font-weight: 700;
+            }
+
+            .close-btn {
+                background: transparent;
+                border: none;
+                color: #aaa;
+                font-size: 1.4rem;
+                cursor: pointer;
+                line-height: 1;
+            }
+
+            .eval-item {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 8px;
+                padding: 0.8rem;
+                margin-bottom: 0.6rem;
+            }
+
+            .eval-item-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.3rem;
+            }
+
+            .eval-user {
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+
+            .eval-score {
+                font-weight: 800;
+                font-size: 1.1rem;
+            }
+
+            .eval-comment {
+                font-size: 0.82rem;
+                color: #aaa;
+                line-height: 1.4;
+            }
+
+            .score-bar {
+                height: 4px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 2px;
+                margin: 0.4rem 0;
+                overflow: hidden;
+            }
+
+            .score-bar-fill {
+                height: 100%;
+                border-radius: 2px;
+                transition: width 0.5s ease;
+            }
+
+            .error-box {
+                background: rgba(244, 67, 54, 0.15);
+                border: 1px solid rgba(244, 67, 54, 0.3);
+                border-radius: 8px;
+                padding: 1rem;
+                color: #f44336;
+                display: none;
+                margin-bottom: 1rem;
+            }
+
+            .error-box.active {
+                display: block;
+            }
+
+            @media (max-width: 600px) {
+                header h1 {
+                    font-size: 1.6rem;
+                }
+
+                #users-container {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🎬 Group Movie Recommendation</h1>
+                <p>
+                    KI-gestütztes Multi-Agenten-System für
+                    Gruppenfilm-Empfehlungen
+                </p>
+            </header>
+
+            <!-- Setup -->
+            <div class="card">
+                <h2>⚙️ Einstellungen</h2>
+                <div class="settings-row user-count-control">
+                    <button class="count-btn" id="decrease-btn">−</button>
+                    <span class="count-display" id="count-display">2</span>
+                    <button class="count-btn" id="increase-btn">+</button>
+                    <label>Personen (2–6)</label>
+                </div>
+                <div class="settings-row user-count-control">
+                    <button class="count-btn" id="rounds-decrease-btn">−</button>
+                    <span class="count-display" id="rounds-display">3</span>
+                    <button class="count-btn" id="rounds-increase-btn">+</button>
+                    <label>Diskussionsrunden (1–5)</label>
+                </div>
+                <div class="settings-row">
+                    <label class="toggle-row" for="discussion-toggle">
+                        <input type="checkbox" id="discussion-toggle" />
+                        💬 Agenten-Diskussion aktivieren
+                    </label>
+                </div>
+                <div
+                    class="settings-row user-count-control discussion-turns-row"
+                    id="discussion-turns-row"
+                >
+                    <button class="count-btn" id="chat-decrease-btn">−</button>
+                    <span class="count-display" id="chat-display">3</span>
+                    <button class="count-btn" id="chat-increase-btn">+</button>
+                    <label>Chat-Durchläufe pro Runde (1–6)</label>
+                </div>
+                <p class="settings-hint">
+                    Diskussionsrunden = Abstimmungszyklen (es werden immer alle
+                    eingestellten Runden durchlaufen). Mit aktivierter
+                    Agenten-Diskussion sprechen die Agenten vor jeder Abstimmung
+                    nacheinander im Chat miteinander (mehr Chat-Durchläufe =
+                    längere Debatte). „Konsens“ ist ein Hinweis
+                    auf ähnliche Bewertungen, kein vorzeitiger Abbruch.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>💬 Filmpräferenzen eingeben</h2>
+                <div id="users-container"></div>
+            </div>
+
+            <div class="error-box" id="error-box"></div>
+
+            <button
+                class="submit-btn"
+                id="submit-btn"
+                onclick="submitRecommendation()"
+            >
+                🎯 Filmempfehlung generieren
+            </button>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: #ffd200; font-weight: 700; font-size: 1rem">
+                    Agenten arbeiten...
+                </p>
+                <div class="loading-steps">
+                    <div class="loading-step" id="step-1">
+                        📝 Präferenzen werden analysiert...
+                    </div>
+                    <div class="loading-step" id="step-2">
+                        🔍 Filme werden gesucht...
+                    </div>
+                    <div class="loading-step" id="step-3">
+                        ⭐ Filme werden bewertet...
+                    </div>
+                    <div class="loading-step" id="step-4">
+                        🏆 Finale Entscheidung wird getroffen...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="result-section">
+                <div class="winner-card">
+                    <div class="winner-badge">🏆 Gruppenempfehlung</div>
+                    <div class="winner-layout">
+                        <div id="winner-poster" class="winner-poster placeholder">🎬</div>
+                        <div class="winner-main">
+                            <div class="winner-header">
+                                <div>
+                                    <div class="winner-title" id="winner-title"></div>
+                                    <div class="winner-meta" id="winner-meta"></div>
+                                </div>
+                                <div style="text-align: center; flex-shrink: 0">
+                                    <div class="group-score" id="group-score"></div>
+                                    <div class="group-score-label">Group Score</div>
+                                </div>
+                            </div>
+                            <div id="winner-description" class="description-box"></div>
+                        </div>
+                    </div>
+                    <div class="usage-box" id="usage-box" style="display: none"></div>
+                    <div class="score-row" id="score-row"></div>
+                </div>
+
+                <div class="card timeline-card">
+                    <h2>💬 Diskussionsverlauf</h2>
+                    <div id="discussion-timeline"></div>
+                </div>
+
+                <div class="card">
+                    <h2>🎥 Alle Kandidaten</h2>
+                    <div class="candidates-grid" id="candidates-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div
+            class="modal-overlay"
+            id="modal-overlay"
+            onclick="closeModal(event)"
+        >
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title" id="modal-title"></div>
+                    <button class="close-btn" onclick="closeModal()">✕</button>
+                </div>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+
+        <script>
+            function initAccessToken() {
+                const params = new URLSearchParams(window.location.search);
+                const fromUrl = params.get("token");
+                if (!fromUrl) return;
+                sessionStorage.setItem("access_token", fromUrl);
+                params.delete("token");
+                const query = params.toString();
+                const nextUrl =
+                    window.location.pathname + (query ? `?${query}` : "");
+                window.history.replaceState({}, "", nextUrl);
+            }
+
+            function getAccessToken() {
+                return sessionStorage.getItem("access_token");
+            }
+
+            function authFetchOptions(options = {}) {
+                const token = getAccessToken();
+                const headers = { ...(options.headers || {}) };
+                if (token) {
+                    headers.Authorization = `Bearer ${token}`;
+                }
+                return { ...options, headers, credentials: "include" };
+            }
+
+            initAccessToken();
+            const COLORS = [
+                { bg: "#4f46e5", light: "rgba(79,70,229,0.2)" },
+                { bg: "#059669", light: "rgba(5,150,105,0.2)" },
+                { bg: "#dc2626", light: "rgba(220,38,38,0.2)" },
+                { bg: "#d97706", light: "rgba(217,119,6,0.2)" },
+                { bg: "#7c3aed", light: "rgba(124,58,237,0.2)" },
+                { bg: "#db2777", light: "rgba(219,39,119,0.2)" },
+            ];
+
+            const DEFAULT_NAMES = [
+                "Alice",
+                "Bob",
+                "Charlie",
+                "Diana",
+                "Evan",
+                "Fiona",
+            ];
+
+            let userCount = 2;
+            let maxRounds = 3;
+            let discussionTurns = 3;
+            let lastResult = null;
+
+            function getScoreColor(score) {
+                if (score >= 7.5) return "#4caf50";
+                if (score >= 5) return "#ff9800";
+                return "#f44336";
+            }
+
+            function formatAgentScore(score) {
+                return `${Number(score).toFixed(1)}/10`;
+            }
+
+            function formatGroupScore(score) {
+                return Number(score).toFixed(1);
+            }
+
+            const TMDB_POSTER_BASE = "https://image.tmdb.org/t/p/w342";
+
+            function posterUrl(posterPath) {
+                if (!posterPath) return null;
+                return `${TMDB_POSTER_BASE}${posterPath}`;
+            }
+
+            function renderPosterHtml(posterPath, className, alt = "") {
+                const url = posterUrl(posterPath);
+                if (!url) {
+                    return `<div class="${className} placeholder">🎬</div>`;
+                }
+                return `<div class="${className}"><img src="${url}" alt="${escapeHtml(alt)}" loading="lazy"></div>`;
+            }
+
+            function setWinnerPoster(posterPath, title) {
+                const el = document.getElementById("winner-poster");
+                const url = posterUrl(posterPath);
+                if (!url) {
+                    el.className = "winner-poster placeholder";
+                    el.innerHTML = "🎬";
+                    return;
+                }
+                el.className = "winner-poster";
+                el.innerHTML = `<img src="${url}" alt="${escapeHtml(title)}" loading="lazy">`;
+            }
+
+            function formatTokenCount(count) {
+                return Number(count || 0).toLocaleString("de-DE");
+            }
+
+            function formatCostUsd(amount) {
+                const value = Number(amount || 0);
+                if (value < 0.01) {
+                    return `$${value.toFixed(4)}`;
+                }
+                return `$${value.toFixed(3)}`;
+            }
+
+            function renderUsage(usage) {
+                const box = document.getElementById("usage-box");
+                if (!usage) {
+                    box.style.display = "none";
+                    box.innerHTML = "";
+                    return;
+                }
+
+                box.style.display = "flex";
+                box.innerHTML = `
+                    <div class="usage-item">
+                        <strong>${formatTokenCount(usage.total_tokens)}</strong>
+                        <span>Tokens gesamt</span>
+                    </div>
+                    <div class="usage-item">
+                        <strong>${formatTokenCount(usage.prompt_tokens)}</strong>
+                        <span>Input · ${usage.llm_calls || 0} LLM-Aufrufe</span>
+                    </div>
+                    <div class="usage-item">
+                        <strong>${formatTokenCount(usage.completion_tokens)}</strong>
+                        <span>Output · ${usage.model || "–"}</span>
+                    </div>
+                    <div class="usage-item">
+                        <strong>${formatCostUsd(usage.estimated_cost_usd)}</strong>
+                        <span>Geschätzte Kosten (USD)</span>
+                    </div>
+                `;
+            }
+
+            function renderUsers() {
+                const container = document.getElementById("users-container");
+                const existing = container.querySelectorAll(".user-card");
+                const currentCount = existing.length;
+
+                if (userCount > currentCount) {
+                    for (let i = currentCount; i < userCount; i++) {
+                        const color = COLORS[i % COLORS.length];
+                        const card = document.createElement("div");
+                        card.className = "user-card";
+                        card.dataset.index = i;
+                        card.innerHTML = `
+              <div class="user-card-header">
+                <div class="user-avatar" style="background: ${color.light}; color: ${color.bg}">
+                  ${DEFAULT_NAMES[i][0]}
+                </div>
+                <input
+                  class="user-name-input"
+                  type="text"
+                  value="${DEFAULT_NAMES[i]}"
+                  placeholder="Name"
+                  maxlength="20"
+                  oninput="updateAvatar(this)"
+                />
+              </div>
+              <textarea
+                class="user-pref-textarea"
+                placeholder="z.B. Ich mag spannende Sci-Fi Filme mit tiefer Story und tollen visuellen Effekten..."
+                rows="3"
+              ></textarea>
+            `;
+                        container.appendChild(card);
+                    }
+                } else {
+                    const cards = container.querySelectorAll(".user-card");
+                    for (let i = userCount; i < currentCount; i++) {
+                        cards[i].remove();
+                    }
+                }
+
+                document.getElementById("count-display").textContent =
+                    userCount;
+                document.getElementById("decrease-btn").disabled =
+                    userCount <= 2;
+                document.getElementById("increase-btn").disabled =
+                    userCount >= 6;
+            }
+
+            function updateAvatar(input) {
+                const card = input.closest(".user-card");
+                const avatar = card.querySelector(".user-avatar");
+                avatar.textContent =
+                    input.value.trim()[0]?.toUpperCase() || "?";
+            }
+
+            document
+                .getElementById("decrease-btn")
+                .addEventListener("click", () => {
+                    if (userCount > 2) {
+                        userCount--;
+                        renderUsers();
+                    }
+                });
+
+            document
+                .getElementById("increase-btn")
+                .addEventListener("click", () => {
+                    if (userCount < 6) {
+                        userCount++;
+                        renderUsers();
+                    }
+                });
+
+            function updateRoundsDisplay() {
+                document.getElementById("rounds-display").textContent =
+                    maxRounds;
+                document.getElementById("rounds-decrease-btn").disabled =
+                    maxRounds <= 1;
+                document.getElementById("rounds-increase-btn").disabled =
+                    maxRounds >= 5;
+            }
+
+            document
+                .getElementById("rounds-decrease-btn")
+                .addEventListener("click", () => {
+                    if (maxRounds > 1) {
+                        maxRounds--;
+                        updateRoundsDisplay();
+                    }
+                });
+
+            document
+                .getElementById("rounds-increase-btn")
+                .addEventListener("click", () => {
+                    if (maxRounds < 5) {
+                        maxRounds++;
+                        updateRoundsDisplay();
+                    }
+                });
+
+            function updateDiscussionDisplay() {
+                const enabled = document.getElementById(
+                    "discussion-toggle",
+                ).checked;
+                document
+                    .getElementById("discussion-turns-row")
+                    .classList.toggle("visible", enabled);
+                document.getElementById("chat-display").textContent =
+                    discussionTurns;
+                document.getElementById("chat-decrease-btn").disabled =
+                    discussionTurns <= 1;
+                document.getElementById("chat-increase-btn").disabled =
+                    discussionTurns >= 6;
+            }
+
+            document
+                .getElementById("discussion-toggle")
+                .addEventListener("change", updateDiscussionDisplay);
+
+            document
+                .getElementById("chat-decrease-btn")
+                .addEventListener("click", () => {
+                    if (discussionTurns > 1) {
+                        discussionTurns--;
+                        updateDiscussionDisplay();
+                    }
+                });
+
+            document
+                .getElementById("chat-increase-btn")
+                .addEventListener("click", () => {
+                    if (discussionTurns < 6) {
+                        discussionTurns++;
+                        updateDiscussionDisplay();
+                    }
+                });
+
+            async function submitRecommendation() {
+                const cards = document.querySelectorAll(".user-card");
+                const users = [];
+
+                for (const card of cards) {
+                    const name =
+                        card.querySelector(".user-name-input").value.trim() ||
+                        "User";
+                    const preference = card
+                        .querySelector(".user-pref-textarea")
+                        .value.trim();
+                    if (!preference) {
+                        showError(`Bitte gib eine Präferenz für ${name} ein.`);
+                        return;
+                    }
+                    users.push({
+                        user_id: crypto.randomUUID(),
+                        user_name: name,
+                        raw_text: preference,
+                    });
+                }
+
+                hideError();
+                setLoading(true);
+                document
+                    .getElementById("result-section")
+                    .classList.remove("active");
+
+                // Simulate loading steps
+                const steps = ["step-1", "step-2", "step-3", "step-4"];
+                let stepIndex = 0;
+                const stepInterval = setInterval(() => {
+                    if (stepIndex > 0) {
+                        document.getElementById(
+                            steps[stepIndex - 1],
+                        ).className = "loading-step done";
+                    }
+                    if (stepIndex < steps.length) {
+                        document.getElementById(steps[stepIndex]).className =
+                            "loading-step active";
+                        stepIndex++;
+                    } else {
+                        clearInterval(stepInterval);
+                    }
+                }, 4000);
+
+                try {
+                    const response = await fetch(
+                        "/api/recommend",
+                        authFetchOptions({
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                users,
+                                max_rounds: maxRounds,
+                                enable_discussion: document.getElementById(
+                                    "discussion-toggle",
+                                ).checked,
+                                discussion_turns: discussionTurns,
+                            }),
+                        }),
+                    );
+
+                    clearInterval(stepInterval);
+
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(
+                            err.detail || "Fehler bei der Empfehlung.",
+                        );
+                    }
+
+                    const data = await response.json();
+                    lastResult = data;
+                    renderResult(data, users);
+                } catch (err) {
+                    clearInterval(stepInterval);
+                    showError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            }
+
+            function renderResult(data, users) {
+                const details = data.movie_details || {};
+
+                setWinnerPoster(details.poster_path, data.movie);
+                document.getElementById("winner-title").textContent =
+                    data.movie;
+                document.getElementById("group-score").textContent =
+                    formatGroupScore(data.group_score);
+                document.getElementById("winner-description").textContent =
+                    details.overview || "";
+
+                renderUsage(data.usage);
+
+                const genreTags = (details.genres || [])
+                    .map((g) => `<span class="genre-tag">${g}</span>`)
+                    .join("");
+
+                document.getElementById("winner-meta").innerHTML = `
+                    <span>⭐ TMDB: ${details.rating ? details.rating.toFixed(1) : "–"}/10</span>
+                    <span>⚖️ Fairness: ${Math.round(data.fairness_score)}</span>
+                    ${genreTags ? `<span>${genreTags}</span>` : ""}
+                `;
+
+                const scoreRow = document.getElementById("score-row");
+                scoreRow.innerHTML = Object.entries(data.individual_scores)
+                    .map(
+                        ([name, score]) => `
+                        <div class="user-score-chip">
+                            <div class="name">${name}</div>
+                            <div class="score" style="color:${getScoreColor(score)}">
+                                ${formatAgentScore(score)}
+                            </div>
+                        </div>
+                    `,
+                    )
+                    .join("");
+
+                renderDiscussionTimeline(
+                    data.transcript,
+                    data.round_history,
+                    users,
+                );
+                renderCandidates(data.candidates || [], data.movie);
+
+                document
+                    .getElementById("result-section")
+                    .classList.add("active");
+                document
+                    .getElementById("result-section")
+                    .scrollIntoView({ behavior: "smooth" });
+            }
+
+            function renderCandidates(candidates, winnerTitle) {
+                const grid = document.getElementById("candidates-grid");
+
+                if (!candidates.length) {
+                    grid.innerHTML =
+                        "<p style='color:#888'>Keine Kandidaten verfügbar.</p>";
+                    return;
+                }
+
+                grid.innerHTML = candidates
+                    .map((c) => {
+                        const isWinner = c.movie.title === winnerTitle;
+                        const userScores = Object.entries(
+                            c.individual_scores || {},
+                        )
+                            .map(
+                                ([name, score]) =>
+                                    `<span class="mini-score">${name}: <span>${formatAgentScore(score)}</span></span>`,
+                            )
+                            .join("");
+
+                        const genres = (c.movie.genres || [])
+                            .slice(0, 3)
+                            .map((g) => `<span class="genre-tag">${g}</span>`)
+                            .join("");
+
+                        return `
+                    <div class="candidate-card ${isWinner ? "winner" : ""}"
+                         onclick="showMovieDetail('${c.movie.movie_id}')">
+                        ${renderPosterHtml(c.movie.poster_path, "candidate-poster", c.movie.title)}
+                        <div class="candidate-body">
+                            ${isWinner ? '<div style="font-size:0.7rem;color:#ffd200;margin-bottom:0.3rem">🏆 Gewinner</div>' : ""}
+                            ${c.vetoed ? '<div style="font-size:0.7rem;color:#f44336;margin-bottom:0.3rem">🚫 Veto</div>' : ""}
+                            ${!c.eligible && !c.vetoed ? '<div style="font-size:0.7rem;color:#888;margin-bottom:0.3rem">⛔ Nicht wählbar</div>' : ""}
+                            <div class="candidate-title">${c.movie.title}</div>
+                            <div class="candidate-genres">${genres}</div>
+                            <div class="candidate-avg-score">${formatGroupScore(c.group_score)}</div>
+                            <div style="font-size:0.7rem;color:#888">Group Score</div>
+                            <div class="candidate-user-scores">${userScores}</div>
+                        </div>
+                    </div>
+                `;
+                    })
+                    .join("");
+            }
+
+            function escapeHtml(text) {
+                return String(text ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;");
+            }
+
+            function getUserColor(userName, users) {
+                const names = users.map((u) => u.user_name);
+                const idx = names.indexOf(userName);
+                return COLORS[idx >= 0 ? idx % COLORS.length : 0];
+            }
+
+            function getUserInitial(userName) {
+                return (userName || "?").charAt(0).toUpperCase();
+            }
+
+            function getRankChange(title, previousStandings, currentStandings) {
+                if (!previousStandings || !previousStandings.length) {
+                    return "";
+                }
+                const prevRank = previousStandings.findIndex(
+                    (entry) => entry.movie.title === title,
+                );
+                const currRank = currentStandings.findIndex(
+                    (entry) => entry.movie.title === title,
+                );
+                if (prevRank === -1 || currRank === -1) {
+                    return '<span class="rank-change same">neu</span>';
+                }
+                const diff = prevRank - currRank;
+                if (diff > 0) {
+                    return `<span class="rank-change up">▲${diff}</span>`;
+                }
+                if (diff < 0) {
+                    return `<span class="rank-change down">▼${Math.abs(diff)}</span>`;
+                }
+                return '<span class="rank-change same">→</span>';
+            }
+
+            function renderStandingsTable(standings, previousStandings) {
+                if (!standings || !standings.length) {
+                    return "<p style='color:#888;font-size:0.85rem'>Keine Rangliste verfügbar.</p>";
+                }
+
+                const topEntries = standings.slice(0, 6);
+                return `
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Film</th>
+                                <th>Group Score</th>
+                                <th>Ø</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${topEntries
+                                .map((entry, index) => {
+                                    const status = entry.vetoed
+                                        ? "🚫 Veto"
+                                        : entry.eligible
+                                          ? "✓ Wählbar"
+                                          : "⛔";
+                                    return `
+                                <tr class="${entry.eligible ? "eligible" : "ineligible"}">
+                                    <td>${index + 1}</td>
+                                    <td>
+                                        ${escapeHtml(entry.movie.title)}
+                                        ${getRankChange(entry.movie.title, previousStandings, standings)}
+                                    </td>
+                                    <td>${formatGroupScore(entry.group_score)}</td>
+                                    <td>${formatAgentScore(entry.average_score)}</td>
+                                    <td>${status}</td>
+                                </tr>
+                            `;
+                                })
+                                .join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            function renderVoteCard(vote, users) {
+                const color = getUserColor(vote.user_name, users);
+                const scoreChips = Object.entries(vote.scores || {})
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 4)
+                    .map(
+                        ([title, score]) =>
+                            `<span class="vote-score-chip">${escapeHtml(title)}: ${formatAgentScore(score)}</span>`,
+                    )
+                    .join("");
+
+                return `
+                    <div class="vote-card">
+                        <div class="vote-card-header">
+                            <div class="chat-avatar" style="background:${color.bg}; color:#fff">
+                                ${getUserInitial(vote.user_name)}
+                            </div>
+                            <strong>${escapeHtml(vote.user_name)}</strong>
+                        </div>
+                        <div class="vote-top-pick">
+                            Top-Wahl: <strong>${escapeHtml(vote.top_choice_title || "–")}</strong>
+                        </div>
+                        <div class="vote-score-chips">${scoreChips}</div>
+                        ${
+                            vote.veto_titles && vote.veto_titles.length
+                                ? `<div style="font-size:0.72rem;color:#f44336;margin-bottom:0.35rem">🚫 Veto: ${vote.veto_titles.map(escapeHtml).join(", ")}</div>`
+                                : ""
+                        }
+                        <div class="vote-reasoning">${escapeHtml(vote.reasoning || "")}</div>
+                    </div>
+                `;
+            }
+
+            function renderChatMessages(messages, users) {
+                if (!messages.length) {
+                    return "<p style='color:#888;font-size:0.85rem'>Kein Chat in dieser Runde.</p>";
+                }
+
+                return `
+                    <div class="timeline-chat">
+                        ${messages
+                            .map((message) => {
+                                const color = getUserColor(
+                                    message.user_name,
+                                    users,
+                                );
+                                return `
+                            <div class="chat-message">
+                                <div class="chat-avatar" style="background:${color.bg}; color:#fff">
+                                    ${getUserInitial(message.user_name)}
+                                </div>
+                                <div class="chat-content">
+                                    <div class="chat-meta">
+                                        <strong>${escapeHtml(message.user_name)}</strong>
+                                        · Durchlauf ${message.turn + 1}
+                                        ${
+                                            message.responding_to
+                                                ? ` · → @${escapeHtml(message.responding_to)}`
+                                                : ""
+                                        }
+                                    </div>
+                                    <div class="chat-bubble">${escapeHtml(message.message)}</div>
+                                </div>
+                            </div>
+                        `;
+                            })
+                            .join("")}
+                    </div>
+                `;
+            }
+
+            function renderDiscussionTimeline(transcript, roundHistory, users) {
+                const container = document.getElementById("discussion-timeline");
+
+                if (!roundHistory || !roundHistory.length) {
+                    if (!transcript || !transcript.length) {
+                        container.innerHTML =
+                            "<p style='color:#888'>Kein Diskussionsverlauf verfügbar.</p>";
+                        return;
+                    }
+
+                    container.innerHTML = transcript
+                        .map((entry) => {
+                            const isDiscussion = entry.type === "discussion";
+                            const text = isDiscussion
+                                ? entry.message
+                                : entry.reasoning;
+                            return `
+                                <div class="timeline-round">
+                                    <div class="timeline-round-number">${entry.round + 1}</div>
+                                    <div class="chat-bubble">${escapeHtml(text)}</div>
+                                </div>
+                            `;
+                        })
+                        .join("");
+                    return;
+                }
+
+                const chatByRound = {};
+                (transcript || [])
+                    .filter((entry) => entry.type === "discussion")
+                    .forEach((entry) => {
+                        if (!chatByRound[entry.round]) {
+                            chatByRound[entry.round] = [];
+                        }
+                        chatByRound[entry.round].push(entry);
+                    });
+
+                container.innerHTML = roundHistory
+                    .map((round, index) => {
+                        const previous = index > 0 ? roundHistory[index - 1] : null;
+                        const badges = [];
+
+                        if (previous?.leader_title) {
+                            badges.push(
+                                `<span class="timeline-badge leader">Führend zu Beginn: ${escapeHtml(previous.leader_title)} (${formatGroupScore(previous.leader_group_score)})</span>`,
+                            );
+                        } else if (index > 0) {
+                            badges.push(
+                                '<span class="timeline-badge warning">Kein wählbarer Führender zu Beginn</span>',
+                            );
+                        }
+
+                        if (round.consensus) {
+                            badges.push(
+                                '<span class="timeline-badge final">Konsens</span>',
+                            );
+                        }
+                        if (round.is_final) {
+                            badges.push(
+                                '<span class="timeline-badge final">Finale Runde</span>',
+                            );
+                        }
+
+                        let leaderAfterVote = "";
+                        if (round.leader_title) {
+                            leaderAfterVote = `
+                                <div class="timeline-leader-result">
+                                    <span class="timeline-badge leader">Spitzenreiter nach Abstimmung: ${escapeHtml(round.leader_title)} (${formatGroupScore(round.leader_group_score)})</span>
+                                </div>`;
+                        } else {
+                            leaderAfterVote = `
+                                <div class="timeline-leader-result">
+                                    <span class="timeline-badge warning">Kein wählbarer Spitzenreiter nach Abstimmung</span>
+                                </div>`;
+                        }
+
+                        return `
+                            <div class="timeline-round">
+                                <div class="timeline-round-number">${round.display_round}</div>
+                                <div class="timeline-round-header">
+                                    <div class="timeline-round-title">Abstimmungsrunde ${round.display_round}</div>
+                                    ${badges.join("")}
+                                </div>
+                                <div class="timeline-section-label">Chat</div>
+                                ${renderChatMessages(chatByRound[round.round] || [], users)}
+                                <div class="timeline-section-label">Abstimmungen</div>
+                                <div class="timeline-votes">
+                                    ${(round.votes || []).map((vote) => renderVoteCard(vote, users)).join("")}
+                                </div>
+                                <div class="timeline-section-label">Rangliste nach Runde</div>
+                                <div class="timeline-standings">
+                                    ${renderStandingsTable(round.standings, previous ? previous.standings : null)}
+                                </div>
+                                ${leaderAfterVote}
+                            </div>
+                        `;
+                    })
+                    .join("");
+            }
+
+            function showMovieDetail(movieId) {
+                if (!lastResult) return;
+                const candidate = (lastResult.candidates || []).find(
+                    (c) => c.movie.movie_id === movieId,
+                );
+                if (!candidate) return;
+
+                document.getElementById("modal-title").textContent =
+                    candidate.movie.title;
+
+                const content = document.getElementById("modal-content");
+                const evaluations = Object.entries(
+                    candidate.individual_scores || {},
+                )
+                    .map(
+                        ([name, score]) => `
+            <div class="eval-item">
+              <div class="eval-item-header">
+                <span class="eval-user">${name}</span>
+                <span class="eval-score" style="color:${getScoreColor(score)}">${formatAgentScore(score)}</span>
+              </div>
+              <div class="score-bar">
+                <div class="score-bar-fill" style="width:${(score / 10) * 100}%; background:${getScoreColor(score)}"></div>
+              </div>
+            </div>
+          `,
+                    )
+                    .join("");
+
+                content.innerHTML = `
+          <div style="margin-bottom:1rem; display:flex; gap:1rem; align-items:flex-start">
+            ${renderPosterHtml(candidate.movie.poster_path, "modal-poster", candidate.movie.title)}
+            <div style="flex:1; min-width:0">
+              <div style="display:flex; gap:1rem; flex-wrap:wrap; color:#aaa; font-size:0.85rem; margin-bottom:0.5rem">
+                <span>⭐ TMDB: ${candidate.movie.rating ? candidate.movie.rating.toFixed(1) : "–"}/10</span>
+                ${candidate.vetoed ? "<span>🚫 Veto von mindestens einer Person</span>" : ""}
+                ${!candidate.eligible && !candidate.vetoed ? "<span>⛔ Unter Mindest-Score (3/10) oder unvollständige Bewertung</span>" : ""}
+              </div>
+              <div class="candidate-genres">
+                ${(candidate.movie.genres || []).map((g) => `<span class="genre-tag">${g}</span>`).join("")}
+              </div>
+              <p style="color:#ccc; font-size:0.85rem; margin-top:0.5rem; line-height:1.5">${candidate.movie.overview || ""}</p>
+            </div>
+          </div>
+          <div style="font-weight:700; margin-bottom:0.6rem; color:#ffd200">Agenten-Bewertungen</div>
+          ${evaluations}
+          <div style="text-align:center; margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.1)">
+            <div style="font-size:0.8rem; color:#aaa">Group Score</div>
+            <div style="font-size:2rem; font-weight:900; color:#ffd200">${formatGroupScore(candidate.group_score)}</div>
+            <div style="font-size:0.75rem; color:#888; margin-top:0.3rem">Ø ${formatAgentScore(candidate.average_score)} · Fairness-gewichtet</div>
+          </div>
+        `;
+
+                document
+                    .getElementById("modal-overlay")
+                    .classList.add("active");
+            }
+
+            function closeModal(event) {
+                if (
+                    !event ||
+                    event.target === document.getElementById("modal-overlay")
+                ) {
+                    document
+                        .getElementById("modal-overlay")
+                        .classList.remove("active");
+                }
+            }
+
+            function setLoading(active) {
+                document.getElementById("loading").className = active
+                    ? "loading active"
+                    : "loading";
+                document.getElementById("submit-btn").disabled = active;
+
+                if (!active) {
+                    document.querySelectorAll(".loading-step").forEach((s) => {
+                        s.className = "loading-step";
+                    });
+                }
+            }
+
+            function showError(msg) {
+                const box = document.getElementById("error-box");
+                box.textContent = "⚠️ " + msg;
+                box.classList.add("active");
+            }
+
+            function hideError() {
+                document.getElementById("error-box").classList.remove("active");
+            }
+
+            // Init
+            renderUsers();
+            updateRoundsDisplay();
+            updateDiscussionDisplay();
+        </script>
+    </body>
+</html>
