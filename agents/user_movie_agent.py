@@ -29,11 +29,14 @@ class UserMovieAgent(RoutedAgent):
     def __init__(self, user_name, model_client, moderator_id, search, preference):
         super().__init__(f"Movie agent for {user_name}")
         self._user_name = user_name
-        self._model_client: OpenAIChatCompletionClient | TrackingChatClient = model_client
+        self._model_client: OpenAIChatCompletionClient | TrackingChatClient = (
+            model_client
+        )
         self._moderator_id = moderator_id
         self._preference = preference
         self._movie_service: MovieSearchService = search
 
+    # Jeder Agent Nomeniert sein Filme
     @message_handler
     async def on_nomination_request(
         self, message: NominationRequest, ctx: MessageContext
@@ -48,6 +51,7 @@ class UserMovieAgent(RoutedAgent):
             self._moderator_id,
         )
 
+    #
     @message_handler
     async def on_discussion_prompt(
         self, message: DiscussionPrompt, ctx: MessageContext
@@ -56,6 +60,7 @@ class UserMovieAgent(RoutedAgent):
         print(f"Discussion {self.id}: {reply}")
         await self.send_message(reply, self._moderator_id)
 
+    #
     @message_handler
     async def on_movie_pool(self, message: MoviePool, ctx: MessageContext) -> None:
         vote = await self._discuss_and_vote(message)
@@ -66,8 +71,7 @@ class UserMovieAgent(RoutedAgent):
         self, prompt: DiscussionPrompt
     ) -> DiscussionReply:
         movies_text = "\n".join(
-            f"- [{c.movie_id}] {c.title}: {c.overview[:120]}"
-            for c in prompt.candidates
+            f"- [{c.movie_id}] {c.title}: {c.overview[:120]}" for c in prompt.candidates
         )
 
         if prompt.conversation:
@@ -257,9 +261,7 @@ class UserMovieAgent(RoutedAgent):
             responding_to=data.get("responding_to", ""),
         )
 
-    async def _request_vote_json(
-        self, messages: list, pool_id_list: list[str]
-    ) -> dict:
+    async def _request_vote_json(self, messages: list, pool_id_list: list[str]) -> dict:
         try:
             result = await self._model_client.create(
                 messages,

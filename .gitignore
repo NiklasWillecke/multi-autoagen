@@ -4,3 +4,4 @@ chroma-data/
 test.py
 test[1-9]*.py
 .DS_Store
+__pycache__/

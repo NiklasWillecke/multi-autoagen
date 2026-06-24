@@ -12,11 +12,14 @@ from agents.moderator_agent import ModeratorAgent
 from agents.user_movie_agent import UserMovieAgent
 from models.messages import NominationRequest, StartRecommendation
 from services.access_guard import AccessGuardMiddleware, access_protection_enabled
+from services.download_db import DownloadDB
 from services.movie_search import MovieSearchService
 from services.preference_parser import PreferenceParser
 from services.usage_tracker import TrackingChatClient, UsageSummary
 
 load_dotenv()
+
+DownloadDB.download
 
 app = FastAPI(title="Group Movie Recommendation System", version="1.0.0")
 app.add_middleware(AccessGuardMiddleware)
@@ -24,6 +27,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Singletons (einmal erstellen, wiederverwenden)
 model_client = OpenAIChatCompletionClient(model="gpt-4o-mini")
+
+# chroma DB search
 search_service = MovieSearchService()
 
 

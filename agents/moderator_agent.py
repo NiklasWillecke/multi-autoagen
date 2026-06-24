@@ -14,12 +14,13 @@ from models.messages import (
     MoviePool,
     Nomination,
 )
-
 from services.vote_scoring import trim_candidate_pool
 
 MAX_SCORE_SPREAD = 5.8
 CONSENSUS_SPREAD = 2.5
 MIN_INDIVIDUAL_SCORE = 3.0
+
+# Wie viele Filme sind am ende im Vote Pool
 MAX_POOL_SIZE = 12
 
 
@@ -69,6 +70,7 @@ class ModeratorAgent(RoutedAgent):
         self._pending_discussion: list = []
         self._pending_leader_title: str | None = None
 
+    #
     @message_handler
     async def on_nomination(self, message: Nomination, ctx: MessageContext) -> None:
         print(f"received message from user agent {ctx.sender}")
@@ -428,9 +430,7 @@ class ModeratorAgent(RoutedAgent):
                 for v in votes
                 if movie.movie_id in v.scores
             },
-            fairness_score=max(
-                0.0, 100.0 - (spread / MAX_SCORE_SPREAD) * 100.0
-            ),
+            fairness_score=max(0.0, 100.0 - (spread / MAX_SCORE_SPREAD) * 100.0),
         )
         print(f"\n🎬 Consensus after {self._round + 1} round(s): {movie.title}")
         print(f"Group Score: {score:.1f} | Spread: {spread:.1f}")
