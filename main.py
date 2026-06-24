@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import uvicorn
 from autogen_core import AgentId, SingleThreadedAgentRuntime
@@ -131,4 +132,5 @@ async def health():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=3333, reload=False)
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
