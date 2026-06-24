@@ -7,8 +7,8 @@ from botocore.config import Config
 # --- Konfiguration (per Env-Variable ueberschreibbar) ---
 ACCOUNT_ID = os.getenv("R2_ACCOUNT_ID", "55f0018c4d4676776ce3574929cba20a")
 BUCKET_NAME = os.getenv("R2_BUCKET_NAME", "movies-chromadb")
-PREFIX = os.getenv("R2_PREFIX", "croma-data/")
-LOCAL_DIR = os.getenv("LOCAL_DB_DIR", "./croma-data")
+PREFIX = os.getenv("R2_PREFIX", "chroma-data/")  # korrekt mit "h"
+LOCAL_DIR = os.getenv("LOCAL_DB_DIR", "./chroma-data")  # konsistent mit main.py
 
 
 class DownloadDBError(Exception):
@@ -44,7 +44,7 @@ class DownloadDB:
         """True nur, wenn der Ordner existiert UND nicht leer ist."""
         ordner = Path(LOCAL_DIR)
         if ordner.exists() and ordner.is_dir() and any(ordner.iterdir()):
-            print("DB bereits vorhanden")
+            print("DB bereits vorhanden - Download uebersprungen")
             return True
         return False
 
@@ -52,12 +52,12 @@ class DownloadDB:
         """
         Findet den tatsaechlich vorhandenen Prefix.
         Probiert den konfigurierten Prefix und gaengige Schreibvarianten
-        (croma/chroma, mit/ohne Slash, Bucket-Root).
+        (chroma/croma, mit/ohne Slash, Bucket-Root) als Sicherheitsnetz.
         """
         candidates = [
             PREFIX,
-            PREFIX.replace("croma", "chroma"),
             PREFIX.replace("chroma", "croma"),
+            PREFIX.replace("croma", "chroma"),
             PREFIX.rstrip("/") + "/",
             "chroma-data/",
             "croma-data/",
@@ -76,7 +76,7 @@ class DownloadDB:
                     print(f"Hinweis: Prefix '{PREFIX}' leer - nutze '{cand}'")
                 return cand
 
-        # Nichts gefunden -> zur Diagnose auflisten, was es WIRKLICH gibt
+        # Nichts gefunden -> zur Diagnose auflisten, was wirklich da ist
         self._diagnose()
         raise DownloadDBError(
             f"Keine Objekte im Bucket '{BUCKET_NAME}' unter den "
@@ -116,7 +116,6 @@ class DownloadDB:
                 if key.endswith("/"):
                     continue
 
-                # Zielpfad relativ zum erkannten Prefix aufbauen
                 rel_path = os.path.relpath(key, prefix) if prefix else key
                 local_path = os.path.join(LOCAL_DIR, rel_path)
 
