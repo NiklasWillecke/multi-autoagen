@@ -21,7 +21,9 @@ from services.usage_tracker import TrackingChatClient, UsageSummary
 load_dotenv()
 
 test = DownloadDB()
+print("Hallo")
 test.download()
+print("Hallo")
 
 app = FastAPI(title="Group Movie Recommendation System", version="1.0.0")
 app.add_middleware(AccessGuardMiddleware)
